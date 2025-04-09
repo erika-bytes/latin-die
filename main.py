@@ -13,11 +13,11 @@ def create_territories(num_players):
     global territories
     territories.clear()
     if num_players == 2 or num_players ==4:
-        territories["territory_0"] = create_territory(1, 2, 3, 4, 5, 6)
-        territories["territory_1"] = create_territory(9, 8, 7, 6, 5, 4)
+        territories["territory_0"] = create_territory(0,1, 2, 3, 4, 5) 
+        territories["territory_1"] = create_territory(8, 7, 6, 5, 4, 3)
         if num_players == 4:
-            territories["territory_2"] = create_territory(4, 7, 2, 9, 5, 1)
-            territories["territory_3"] = create_territory(6, 3, 8, 1, 5, 9)
+            territories["territory_2"] = create_territory(3, 6, 1, 8, 4, 0)
+            territories["territory_3"] = create_territory(5, 2, 7, 0, 4, 8)
     else:
         raise ValueError("Invalid number of players")
 
@@ -112,6 +112,33 @@ def roll_die(stack, player_num):
     level = get_stack_height(stack)
     board[stack][level] = random.randint(1,6)
 
+#stack by removing last die in hand, placing on selected stack
+def stack_die(stack, player_num):
+    is_in_territory(stack, player_num)
+    if not is_in_territory(stack, player_num):
+        print(f"Player {player_num} cannot place a die on a stack outside their territory.")
+        return
+    
+    i = 5
+    while i >= 0:
+        if hands[player_num][i] != 0:
+            val_to_stack = hands[player_num][i]
+            break
+        i -= 1
+    if i == -1:
+        print(f"Player {player_num}'s hand is empty! Cannot stack a die.")
+        return
+
+    global board
+
+    level = get_stack_height(stack)
+    if level == 3:
+        print(f"Stack is full! Cannot add more dice.")
+        return
+
+    board[stack][level+1] =  val_to_stack
+    hands[player_num][i] = 0
+
 
 
 def play_game(num_players):
@@ -129,7 +156,7 @@ def play_game(num_players):
     while not game_over:
         for player in range(num_players):
             print(f"\nPlayer {player}'s turn:")
-            player_choice = input(f"Player {player}, merge or roll? ").lower()
+            player_choice = input(f"Player {player}: merge, roll or stack? ").lower()
             
             if player_choice == "merge":
                 stack_1 = int(input(f"Player {player}, enter die stack position 1 (0-8): "))
@@ -149,6 +176,18 @@ def play_game(num_players):
                 
                 if 0 <= stack < 9:
                     roll_die(stack, player)
+                    print("Board new state:")
+                    print(board)
+                    print("Hands new state:")
+                    print(hands)
+                else:
+                    print("Invalid stack position. Please enter a value between 0 and 8.")
+                    
+            elif player_choice == "stack":
+                stack = int(input(f"Player {player}, enter die stack position (0-8): "))
+                
+                if 0 <= stack < 9:
+                    stack_die(stack, player)
                     print("Board new state:")
                     print(board)
                     print("Hands new state:")
